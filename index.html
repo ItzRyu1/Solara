@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#f97316">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Solara">
+<link rel="manifest" href="manifest.json">
+<title>Solara</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sun: #f97316;
+    --sun-light: #fbbf24;
+    --sun-pale: #fef3c7;
+    --sea: #0ea5e9;
+    --sea-deep: #0369a1;
+    --sea-light: #bae6fd;
+    --sand: #fde68a;
+    --sand-dark: #d97706;
+    --coral: #fb7185;
+    --white: #fffbf5;
+    --dark: #1c1a16;
+    --text: #3d3528;
+    --text-light: #8b7355;
+    --card: rgba(255,251,245,0.85);
+    --glass: rgba(255,251,245,0.6);
+    --shadow: 0 8px 32px rgba(249,115,22,0.15);
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+  [data-theme="night"] {
+    --white: #1a1a2e;
+    --dark: #e8e0d0;
+    --text: #e8e0d0;
+    --text-light: #9a8c7a;
+    --card: rgba(26,26,46,0.9);
+    --glass: rgba(26,26,46,0.7);
+    --sun: #f59e0b;
+    --sun-light: #fbbf24;
+    --sea: #1d4ed8;
+    --shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html, body { height:100%; overflow:hidden; font-family:'DM Sans', sans-serif; background:var(--white); color:var(--text); }
+
+  /* ===== BACKGROUND ===== */
+  #bg {
+    position:fixed; inset:0; z-index:0;
+    background: linear-gradient(160deg, #fff7ed 0%, #fed7aa 30%, #bae6fd 70%, #dbeafe 100%);
+    transition: background 2s ease;
+  }
+  [data-theme="night"] #bg {
+    background: linear-gradient(160deg, #0f0c29 0%, #1a1a3e 40%, #0a0a2e 100%);
+  }
+  .wave { position:fixed; bottom:0; left:0; right:0; z-index:0; pointer-events:none; }
+  .wave svg { display:block; }
+
+  /* ===== PAGES ===== */
+  .page { position:fixed; inset:0; z-index:10; display:flex; flex-direction:column; overflow-y:auto; overflow-x:hidden; transition: opacity 0.4s ease, transform 0.4s ease; }
+  .page.hidden { opacity:0; pointer-events:none; transform:translateY(20px); }
+
+  /* ===== SCROLLBAR ===== */
+  ::-webkit-scrollbar { width:4px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--sun); border-radius:4px; }
+
+  /* ===== LOGIN PAGE ===== */
+  #page-login {
+    align-items:center; justify-content:center;
+    background: linear-gradient(135deg, #fff7ed 0%, #fed7aa 50%, #bae6fd 100%);
+  }
+  [data-theme="night"] #page-login {
+    background: linear-gradient(135deg, #0f0c29 0%, #1a1a3e 100%);
+  }
+  .login-box {
+    background:var(--card);
+    backdrop-filter:blur(20px);
+    border-radius:28px;
+    padding:40px 32px;
+    width:min(360px, 90vw);
+    box-shadow:var(--shadow), 0 0 0 1px rgba(249,115,22,0.1);
+    text-align:center;
+    animation: floatIn 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes floatIn { from { opacity:0; transform:translateY(40px) scale(0.95); } to { opacity:1; transform:none; } }
+  .login-sun { font-size:64px; margin-bottom:8px; animation: rotateSlow 20s linear infinite; display:inline-block; }
+  @keyframes rotateSlow { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
+  .login-title { font-family:'Playfair Display', serif; font-size:2.4rem; font-weight:900; color:var(--sun); margin-bottom:4px; }
+  .login-sub { color:var(--text-light); font-size:0.9rem; margin-bottom:28px; }
+  .input-wrap { position:relative; margin-bottom:16px; }
+  .input-wrap input {
+    width:100%; padding:14px 18px; border-radius:var(--radius-sm);
+    border:2px solid transparent;
+    background:rgba(249,115,22,0.08);
+    font-family:'DM Sans',sans-serif; font-size:1rem; color:var(--text);
+    outline:none; transition:border 0.2s;
+  }
+  .input-wrap input:focus { border-color:var(--sun); }
+  .input-wrap input::placeholder { color:var(--text-light); }
+  .btn-primary {
+    width:100%; padding:14px; border-radius:var(--radius-sm);
+    background:linear-gradient(135deg, var(--sun), var(--sun-light));
+    border:none; color:white; font-family:'DM Sans',sans-serif;
+    font-size:1rem; font-weight:600; cursor:pointer;
+    box-shadow:0 4px 20px rgba(249,115,22,0.4);
+    transition:transform 0.15s, box-shadow 0.15s;
+  }
+  .btn-primary:active { transform:scale(0.97); box-shadow:0 2px 10px rgba(249,115,22,0.3); }
+  .login-hint { font-size:0.78rem; color:var(--text-light); margin-top:12px; }
+  .login-error { color:var(--coral); font-size:0.85rem; margin-top:8px; min-height:20px; }
+
+  /* ===== ONBOARDING ===== */
+  #page-onboarding { background:transparent; padding:0; }
+  .onboard-container { min-height:100vh; display:flex; flex-direction:column; padding:60px 24px 40px; max-width:480px; margin:0 auto; width:100%; }
+  .onboard-step { display:none; flex-direction:column; gap:20px; animation:fadeSlideIn 0.4s ease; }
+  .onboard-step.active { display:flex; }
+  @keyframes fadeSlideIn { from { opacity:0; transform:translateX(30px); } to { opacity:1; transform:none; } }
+  .onboard-header { text-align:center; }
+  .onboard-emoji { font-size:48px; margin-bottom:8px; }
+  .onboard-title { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:var(--sun); }
+  .onboard-desc { color:var(--text-light); font-size:0.9rem; margin-top:6px; line-height:1.5; }
+  .step-dots { display:flex; gap:8px; justify-content:center; margin-top:auto; padding-top:20px; }
+  .step-dot { width:8px; height:8px; border-radius:50%; background:rgba(249,115,22,0.3); transition:all 0.3s; }
+  .step-dot.active { width:24px; border-radius:4px; background:var(--sun); }
+
+  /* Phototype selector */
+  .phototype-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .phototype-card {
+    background:var(--card); border-radius:var(--radius-sm); padding:14px 8px;
+    text-align:center; cursor:pointer; border:2px solid transparent;
+    transition:all 0.2s; backdrop-filter:blur(10px);
+  }
+  .phototype-card:hover { border-color:var(--sun-light); }
+  .phototype-card.selected { border-color:var(--sun); background:rgba(249,115,22,0.1); }
+  .phototype-card .skin-dot { width:32px; height:32px; border-radius:50%; margin:0 auto 8px; border:2px solid rgba(0,0,0,0.1); }
+  .phototype-card .pt-label { font-size:0.75rem; font-weight:600; color:var(--text); }
+  .phototype-card .pt-sub { font-size:0.65rem; color:var(--text-light); }
+
+  /* Objectif selector */
+  .obj-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .obj-card {
+    background:var(--card); border-radius:var(--radius-sm); padding:20px 14px;
+    text-align:center; cursor:pointer; border:2px solid transparent;
+    transition:all 0.2s; backdrop-filter:blur(10px);
+  }
+  .obj-card:hover { border-color:var(--sun-light); }
+  .obj-card.selected { border-color:var(--sun); background:rgba(249,115,22,0.1); }
+  .obj-card .obj-icon { font-size:32px; margin-bottom:8px; }
+  .obj-card .obj-label { font-size:0.85rem; font-weight:600; }
+  .obj-card .obj-sub { font-size:0.72rem; color:var(--text-light); margin-top:4px; }
+
+  /* ===== MAIN NAV ===== */
+  .bottom-nav {
+    position:fixed; bottom:0; left:0; right:0; z-index:100;
+    background:var(--card); backdrop-filter:blur(20px);
+    border-top:1px solid rgba(249,115,22,0.15);
+    display:flex; padding:10px 0 calc(10px + env(safe-area-inset-bottom));
+    box-shadow:0 -4px 20px rgba(0,0,0,0.06);
+  }
+  .nav-item {
+    flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+    cursor:pointer; padding:6px 0; transition:all 0.2s; opacity:0.5;
+  }
+  .nav-item.active { opacity:1; }
+  .nav-item .nav-icon { font-size:22px; transition:transform 0.2s; }
+  .nav-item.active .nav-icon { transform:scale(1.15); }
+  .nav-item .nav-label { font-size:0.65rem; font-weight:600; color:var(--sun); }
+
+  /* ===== MAIN PAGES ===== */
+  .main-page { position:fixed; inset:0; bottom:72px; z-index:20; overflow-y:auto; padding:0 0 20px; display:none; }
+  .main-page.active { display:block; }
+
+  /* ===== HOME PAGE ===== */
+  .home-hero {
+    position:relative; padding:60px 24px 30px; min-height:280px;
+    display:flex; flex-direction:column; justify-content:flex-end;
+    overflow:hidden;
+  }
+  .animated-sun {
+    position:absolute; top:20px; right:20px;
+    width:100px; height:100px; animation:sunPulse 4s ease-in-out infinite;
+  }
+  @keyframes sunPulse {
+    0%,100% { transform:scale(1) rotate(0deg); filter:drop-shadow(0 0 20px rgba(251,191,36,0.6)); }
+    50% { transform:scale(1.08) rotate(5deg); filter:drop-shadow(0 0 35px rgba(251,191,36,0.9)); }
+  }
+  .sun-circle {
+    width:100%; height:100%; border-radius:50%;
+    background:radial-gradient(circle at 40% 40%, #fde68a, #f97316, #dc2626);
+  }
+  .sun-rays { position:absolute; inset:-15px; }
+  .ray {
+    position:absolute; width:4px; height:18px; background:var(--sun-light);
+    border-radius:2px; top:50%; left:50%; transform-origin:50% 65px;
+    opacity:0.8;
+  }
+  .luma-bubble {
+    background:var(--card); backdrop-filter:blur(20px);
+    border-radius:18px 18px 18px 4px; padding:14px 18px;
+    max-width:85%; box-shadow:var(--shadow);
+    border:1px solid rgba(249,115,22,0.2);
+    animation:bubbleIn 0.6s cubic-bezier(0.34,1.56,0.64,1) 0.3s both;
+  }
+  @keyframes bubbleIn { from { opacity:0; transform:scale(0.8) translateY(10px); } to { opacity:1; transform:none; } }
+  .luma-name { font-size:0.7rem; font-weight:700; color:var(--sun); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:4px; }
+  .luma-text { font-size:0.9rem; line-height:1.4; color:var(--text); }
+
+  .home-cards { padding:0 16px; display:flex; flex-direction:column; gap:12px; }
+  .card {
+    background:var(--card); backdrop-filter:blur(20px);
+    border-radius:var(--radius); padding:18px 20px;
+    box-shadow:var(--shadow); border:1px solid rgba(255,255,255,0.5);
+  }
+  .card-title { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-light); margin-bottom:10px; }
+
+  /* UV Card */
+  .uv-display { display:flex; align-items:center; gap:16px; }
+  .uv-circle {
+    width:72px; height:72px; border-radius:50%; flex-shrink:0;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:900; color:white;
+    box-shadow:0 4px 20px rgba(0,0,0,0.2);
+  }
+  .uv-info { flex:1; }
+  .uv-label { font-size:1rem; font-weight:700; color:var(--text); }
+  .uv-sub { font-size:0.8rem; color:var(--text-light); margin-top:2px; }
+  .uv-bar { height:6px; border-radius:3px; background:rgba(0,0,0,0.08); margin-top:8px; overflow:hidden; }
+  .uv-bar-fill { height:100%; border-radius:3px; transition:width 1s ease; }
+
+  /* Countdown */
+  .countdown-row { display:flex; align-items:center; justify-content:space-between; }
+  .countdown-time { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; color:var(--sun); }
+  .countdown-label { font-size:0.78rem; color:var(--text-light); }
+
+  /* Quick actions */
+  .quick-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .quick-btn {
+    background:linear-gradient(135deg, rgba(249,115,22,0.1), rgba(251,191,36,0.1));
+    border:1.5px solid rgba(249,115,22,0.2); border-radius:var(--radius-sm);
+    padding:14px 12px; cursor:pointer; transition:all 0.2s; text-align:center;
+  }
+  .quick-btn:active { transform:scale(0.96); }
+  .quick-btn .qb-icon { font-size:24px; margin-bottom:4px; }
+  .quick-btn .qb-label { font-size:0.78rem; font-weight:600; color:var(--text); }
+
+  /* Weather multi-day */
+  .forecast-row { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; }
+  .forecast-row::-webkit-scrollbar { height:0; }
+  .forecast-day {
+    flex-shrink:0; background:rgba(249,115,22,0.06); border-radius:12px;
+    padding:10px 12px; text-align:center; min-width:62px;
+    border:1px solid rgba(249,115,22,0.1);
+  }
+  .forecast-day .fd-day { font-size:0.7rem; font-weight:600; color:var(--text-light); }
+  .forecast-day .fd-icon { font-size:22px; margin:4px 0; }
+  .forecast-day .fd-temp { font-size:0.85rem; font-weight:700; color:var(--text); }
+  .forecast-day .fd-uv { font-size:0.7rem; color:var(--sun); font-weight:600; }
+
+  /* ===== DASHBOARD ===== */
+  .dash-content { padding:60px 16px 20px; display:flex; flex-direction:column; gap:12px; }
+  .uv-chart-wrap { position:relative; height:140px; }
+  .uv-chart-svg { width:100%; height:100%; }
+
+  .weather-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; }
+  .weather-item { text-align:center; padding:12px; background:rgba(249,115,22,0.05); border-radius:12px; }
+  .weather-item .wi-icon { font-size:28px; }
+  .weather-item .wi-val { font-size:1.1rem; font-weight:700; color:var(--text); }
+  .weather-item .wi-label { font-size:0.7rem; color:var(--text-light); }
+
+  /* ===== SESSION PAGE ===== */
+  .session-content { padding:60px 16px 20px; display:flex; flex-direction:column; gap:14px; }
+
+  .cream-list { display:flex; flex-direction:column; gap:8px; max-height:180px; overflow-y:auto; }
+  .cream-item {
+    display:flex; align-items:center; gap:12px; padding:10px 14px;
+    background:rgba(249,115,22,0.06); border-radius:12px; cursor:pointer;
+    border:2px solid transparent; transition:all 0.2s;
+  }
+  .cream-item.selected { border-color:var(--sun); background:rgba(249,115,22,0.12); }
+  .cream-item .ci-spf { font-weight:700; font-size:1rem; color:var(--sun); min-width:50px; }
+  .cream-item .ci-name { font-size:0.85rem; color:var(--text); }
+  .cream-item .ci-type { font-size:0.7rem; color:var(--text-light); }
+
+  .add-cream-btn {
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    background:transparent; border:2px dashed rgba(249,115,22,0.3);
+    border-radius:12px; cursor:pointer; color:var(--sun);
+    font-size:0.85rem; font-weight:600; transition:all 0.2s;
+  }
+  .add-cream-btn:hover { border-color:var(--sun); background:rgba(249,115,22,0.05); }
+
+  /* Timer */
+  .timer-display {
+    text-align:center; padding:24px;
+    background:linear-gradient(135deg, rgba(249,115,22,0.08), rgba(14,165,233,0.08));
+    border-radius:var(--radius); border:1px solid rgba(249,115,22,0.15);
+  }
+  .timer-ring { position:relative; width:160px; height:160px; margin:0 auto 16px; }
+  .timer-ring svg { transform:rotate(-90deg); }
+  .timer-ring .ring-bg { fill:none; stroke:rgba(249,115,22,0.15); stroke-width:8; }
+  .timer-ring .ring-fill { fill:none; stroke:url(#timerGrad); stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1s linear; }
+  .timer-center { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+  .timer-time { font-family:'Playfair Display',serif; font-size:2rem; font-weight:700; color:var(--text); }
+  .timer-label { font-size:0.75rem; color:var(--text-light); }
+  .reapp-bar-wrap { margin-top:12px; }
+  .reapp-bar-label { display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-light); margin-bottom:6px; }
+  .reapp-bar { height:8px; border-radius:4px; background:rgba(0,0,0,0.08); overflow:hidden; }
+  .reapp-bar-fill { height:100%; border-radius:4px; background:linear-gradient(90deg, var(--sun), var(--coral)); transition:width 1s; }
+
+  .timer-btns { display:flex; gap:10px; margin-top:14px; }
+  .btn-secondary {
+    flex:1; padding:12px; border-radius:var(--radius-sm);
+    background:rgba(249,115,22,0.1); border:1.5px solid rgba(249,115,22,0.2);
+    color:var(--sun); font-family:'DM Sans',sans-serif;
+    font-size:0.9rem; font-weight:600; cursor:pointer; transition:all 0.2s;
+  }
+  .btn-secondary:active { transform:scale(0.97); }
+  .btn-danger {
+    flex:1; padding:12px; border-radius:var(--radius-sm);
+    background:rgba(251,113,133,0.1); border:1.5px solid rgba(251,113,133,0.3);
+    color:var(--coral); font-family:'DM Sans',sans-serif;
+    font-size:0.9rem; font-weight:600; cursor:pointer; transition:all 0.2s;
+  }
+
+  /* Result card */
+  .result-card {
+    background:linear-gradient(135deg, rgba(249,115,22,0.1), rgba(14,165,233,0.1));
+    border-radius:var(--radius); padding:18px; border:1px solid rgba(249,115,22,0.2);
+  }
+  .result-main { font-family:'Playfair Display',serif; font-size:1.8rem; font-weight:700; color:var(--sun); }
+  .result-sub { font-size:0.82rem; color:var(--text-light); margin-top:4px; }
+  .result-tips { margin-top:12px; display:flex; flex-direction:column; gap:6px; }
+  .result-tip { font-size:0.8rem; color:var(--text); display:flex; gap:6px; align-items:flex-start; }
+
+  /* ===== PROFILE PAGE ===== */
+  .profile-content { padding:60px 16px 20px; display:flex; flex-direction:column; gap:14px; }
+  .profile-section-title { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--text-light); margin-bottom:8px; }
+
+  .setting-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 0; border-bottom:1px solid rgba(249,115,22,0.1);
+  }
+  .setting-row:last-child { border-bottom:none; }
+  .setting-label { font-size:0.9rem; font-weight:500; color:var(--text); }
+  .setting-value { font-size:0.85rem; color:var(--sun); font-weight:600; }
+
+  /* Toggle */
+  .toggle { width:44px; height:24px; background:rgba(0,0,0,0.15); border-radius:12px; position:relative; cursor:pointer; transition:background 0.3s; }
+  .toggle.on { background:var(--sun); }
+  .toggle::after { content:''; position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%; background:white; transition:transform 0.3s; box-shadow:0 2px 4px rgba(0,0,0,0.2); }
+  .toggle.on::after { transform:translateX(20px); }
+
+  /* API Key */
+  .api-key-wrap { position:relative; }
+  .api-key-wrap input {
+    width:100%; padding:12px 42px 12px 14px; border-radius:var(--radius-sm);
+    border:1.5px solid rgba(249,115,22,0.2); background:rgba(249,115,22,0.05);
+    font-family:'DM Sans',sans-serif; font-size:0.85rem; color:var(--text); outline:none;
+    transition:border 0.2s;
+  }
+  .api-key-wrap input:focus { border-color:var(--sun); }
+  .api-key-provider {
+    display:flex; gap:8px; flex-wrap:wrap; margin-top:8px;
+  }
+  .provider-chip {
+    padding:5px 12px; border-radius:20px; font-size:0.75rem; font-weight:600;
+    background:rgba(249,115,22,0.08); border:1.5px solid rgba(249,115,22,0.2);
+    cursor:pointer; transition:all 0.2s; color:var(--text);
+  }
+  .provider-chip.selected { background:rgba(249,115,22,0.15); border-color:var(--sun); color:var(--sun); }
+
+  /* Password change */
+  .pwd-form { display:flex; flex-direction:column; gap:8px; }
+
+  /* ===== HISTORY PAGE ===== */
+  .history-content { padding:60px 16px 20px; display:flex; flex-direction:column; gap:14px; }
+  .progress-card { text-align:center; padding:20px; }
+  .progress-skins { display:flex; justify-content:center; gap:6px; margin:12px 0; }
+  .skin-level {
+    width:36px; height:36px; border-radius:50%; border:2px solid transparent;
+    transition:all 0.3s; position:relative;
+  }
+  .skin-level.current { border-color:var(--sun); transform:scale(1.2); box-shadow:0 0 12px rgba(249,115,22,0.4); }
+  .skin-level::after { content:''; position:absolute; inset:-4px; border-radius:50%; border:2px solid var(--sun); opacity:0; transition:opacity 0.3s; }
+  .skin-level.current::after { opacity:1; animation:skinPulse 2s ease-in-out infinite; }
+  @keyframes skinPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.1)} }
+
+  .history-chart { height:100px; position:relative; }
+  .no-history { text-align:center; padding:30px; color:var(--text-light); font-size:0.9rem; }
+  .session-log { display:flex; flex-direction:column; gap:8px; }
+  .log-item {
+    display:flex; align-items:center; gap:12px; padding:12px 14px;
+    background:rgba(249,115,22,0.05); border-radius:12px;
+    border-left:3px solid var(--sun);
+  }
+  .log-item .li-date { font-size:0.7rem; color:var(--text-light); min-width:50px; }
+  .log-item .li-info { flex:1; }
+  .log-item .li-title { font-size:0.85rem; font-weight:600; color:var(--text); }
+  .log-item .li-sub { font-size:0.72rem; color:var(--text-light); }
+  .log-item .li-score { font-size:1.1rem; }
+
+  /* ===== MODALS ===== */
+  .modal-overlay {
+    position:fixed; inset:0; z-index:200; background:rgba(0,0,0,0.5);
+    backdrop-filter:blur(8px); display:flex; align-items:flex-end;
+    opacity:0; pointer-events:none; transition:opacity 0.3s;
+  }
+  .modal-overlay.open { opacity:1; pointer-events:all; }
+  .modal-sheet {
+    width:100%; background:var(--white); border-radius:24px 24px 0 0;
+    padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+    transform:translateY(100%); transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    max-height:90vh; overflow-y:auto;
+  }
+  .modal-overlay.open .modal-sheet { transform:none; }
+  .modal-handle { width:40px; height:4px; border-radius:2px; background:rgba(0,0,0,0.15); margin:0 auto 16px; }
+  .modal-title { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; color:var(--text); margin-bottom:16px; }
+
+  /* Location modal */
+  .location-btns { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+  .loc-btn {
+    display:flex; align-items:center; gap:12px; padding:14px 16px;
+    background:rgba(249,115,22,0.06); border-radius:var(--radius-sm);
+    border:1.5px solid rgba(249,115,22,0.15); cursor:pointer; transition:all 0.2s;
+  }
+  .loc-btn:active { transform:scale(0.98); }
+  .loc-btn .lb-icon { font-size:22px; }
+  .loc-btn .lb-text { font-size:0.9rem; font-weight:600; color:var(--text); }
+  .divider { display:flex; align-items:center; gap:10px; margin:8px 0; color:var(--text-light); font-size:0.8rem; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background:rgba(0,0,0,0.1); }
+
+  /* Add cream modal */
+  .form-group { display:flex; flex-direction:column; gap:6px; margin-bottom:14px; }
+  .form-label { font-size:0.78rem; font-weight:700; color:var(--text-light); text-transform:uppercase; letter-spacing:0.06em; }
+  .form-input {
+    padding:12px 14px; border-radius:var(--radius-sm);
+    border:1.5px solid rgba(249,115,22,0.2); background:rgba(249,115,22,0.04);
+    font-family:'DM Sans',sans-serif; font-size:0.9rem; color:var(--text); outline:none;
+    transition:border 0.2s;
+  }
+  .form-input:focus { border-color:var(--sun); }
+  .spf-chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .spf-chip {
+    padding:6px 14px; border-radius:20px; font-size:0.82rem; font-weight:600;
+    background:rgba(249,115,22,0.08); border:1.5px solid rgba(249,115,22,0.15);
+    cursor:pointer; transition:all 0.2s; color:var(--text);
+  }
+  .spf-chip.selected { background:rgba(249,115,22,0.2); border-color:var(--sun); color:var(--sun); }
+  .uv-type-chips { display:flex; gap:8px; }
+  .uv-chip {
+    flex:1; padding:10px; border-radius:var(--radius-sm); text-align:center;
+    font-size:0.8rem; font-weight:600; cursor:pointer; border:1.5px solid rgba(249,115,22,0.2);
+    background:rgba(249,115,22,0.04); transition:all 0.2s; color:var(--text);
+  }
+  .uv-chip.selected { background:rgba(249,115,22,0.15); border-color:var(--sun); color:var(--sun); }
+
+  /* Luma alert */
+  .luma-alert {
+    position:fixed; top:16px; left:16px; right:16px; z-index:500;
+    background:var(--card); backdrop-filter:blur(20px);
+    border-radius:16px; padding:14px 16px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.2); border-left:4px solid var(--sun);
+    transform:translateY(-100px); opacity:0; transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .luma-alert.show { transform:none; opacity:1; }
+  .luma-alert .la-name { font-size:0.7rem; font-weight:700; color:var(--sun); text-transform:uppercase; letter-spacing:0.1em; }
+  .luma-alert .la-text { font-size:0.88rem; color:var(--text); margin-top:2px; line-height:1.4; }
+
+  /* Page header */
+  .page-header {
+    position:absolute; top:0; left:0; right:0; z-index:50;
+    padding:16px 20px 0; display:flex; align-items:center; justify-content:space-between;
+  }
+  .page-header-title { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; color:var(--text); }
+  .header-action { width:36px; height:36px; border-radius:50%; background:var(--card); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px; backdrop-filter:blur(10px); }
+
+  /* Notifications in-app */
+  .notif-bar {
+    background:linear-gradient(135deg, var(--sun), var(--coral));
+    color:white; padding:10px 20px; font-size:0.85rem; font-weight:600;
+    text-align:center; cursor:pointer; display:none;
+  }
+  .notif-bar.visible { display:block; animation:slideDown 0.3s ease; }
+  @keyframes slideDown { from { transform:translateY(-100%); } to { transform:none; } }
+
+  /* Export btn */
+  .export-btn {
+    display:flex; align-items:center; justify-content:center; gap:8px;
+    padding:13px; border-radius:var(--radius-sm);
+    background:rgba(14,165,233,0.1); border:1.5px solid rgba(14,165,233,0.25);
+    color:var(--sea-deep); font-family:'DM Sans',sans-serif;
+    font-size:0.88rem; font-weight:600; cursor:pointer; transition:all 0.2s;
+  }
+  [data-theme="night"] .export-btn { color:var(--sea-light); }
+
+  /* Stars for night mode */
+  .stars { position:fixed; inset:0; pointer-events:none; z-index:0; display:none; }
+  [data-theme="night"] .stars { display:block; }
+  .star { position:absolute; background:white; border-radius:50%; animation:twinkle 3s ease-in-out infinite; }
+  @keyframes twinkle { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+  /* Utils */
+  .flex-row { display:flex; align-items:center; gap:10px; }
+  .spacer { flex:1; }
+  .text-center { text-align:center; }
+  .mt-8 { margin-top:8px; }
+  .mt-12 { margin-top:12px; }
+  .tag {
+    display:inline-flex; align-items:center; padding:3px 10px;
+    border-radius:20px; font-size:0.7rem; font-weight:700;
+    background:rgba(249,115,22,0.12); color:var(--sun);
+  }
+  .badge-uv-low { background:rgba(34,197,94,0.15); color:#15803d; }
+  .badge-uv-mod { background:rgba(251,191,36,0.15); color:#d97706; }
+  .badge-uv-high { background:rgba(249,115,22,0.15); color:#ea580c; }
+  .badge-uv-vhigh { background:rgba(239,68,68,0.15); color:#dc2626; }
+  .badge-uv-extreme { background:rgba(139,92,246,0.15); color:#7c3aed; }
+
+  /* Loading spinner */
+  .spinner { width:32px; height:32px; border:3px solid rgba(249,115,22,0.2); border-top-color:var(--sun); border-radius:50%; animation:spin 0.8s linear infinite; margin:20px auto; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Background -->
+<div id="bg"></div>
+<div class="stars" id="stars"></div>
+<div class="wave">
+  <svg viewBox="0 0 1440 80" preserveAspectRatio="none" style="height:80px;width:100%">
+    <path d="M0,40 C360,80 1080,0 1440,40 L1440,80 L0,80 Z" fill="rgba(14,165,233,0.12)"/>
+  </svg>
+</div>
+
+<!-- Luma Alert -->
+<div class="luma-alert" id="lumaAlert">
+  <div class="la-name">☀️ Luma</div>
+  <div class="la-text" id="lumaAlertText"></div>
+</div>
+
+<!-- Notification bar -->
+<div class="notif-bar" id="notifBar" onclick="dismissNotif()"></div>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div class="page" id="page-login">
+  <div class="login-box">
+    <div class="login-sun">☀️</div>
+    <div class="login-title">Solara</div>
+    <div class="login-sub">Ton compagnon bronzage intelligent</div>
+    <div class="input-wrap">
+      <input type="password" id="loginInput" placeholder="Mot de passe" onkeydown="if(event.key==='Enter')tryLogin()">
+    </div>
+    <button class="btn-primary" onclick="tryLogin()">Entrer dans Solara</button>
+    <div class="login-hint" id="loginHint"></div>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ===== ONBOARDING ===== -->
+<div class="page hidden" id="page-onboarding">
+  <div class="onboard-container">
+    <!-- Step 1: Welcome -->
+    <div class="onboard-step active" id="ob-step-1">
+      <div class="onboard-header">
+        <div class="onboard-emoji">🌊</div>
+        <div class="onboard-title">Bienvenue dans Solara</div>
+        <div class="onboard-desc">Je suis Luma, ton assistante bronzage. Dis-moi quelques choses sur toi pour personnaliser tes conseils.</div>
+      </div>
+      <div class="card" style="text-align:center;padding:24px">
+        <div style="font-size:48px;margin-bottom:12px">☀️</div>
+        <div style="font-size:1rem;color:var(--text-light);line-height:1.5">On va configurer ton profil en <strong style="color:var(--text)">2 minutes</strong> pour des conseils parfaitement adaptés.</div>
+      </div>
+      <button class="btn-primary" onclick="nextStep(1)">C'est parti !</button>
+      <div class="step-dots">
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+      </div>
+    </div>
+
+    <!-- Step 2: Phototype -->
+    <div class="onboard-step" id="ob-step-2">
+      <div class="onboard-header">
+        <div class="onboard-emoji">🧬</div>
+        <div class="onboard-title">Ton type de peau</div>
+        <div class="onboard-desc">Choisis le phototype qui correspond le mieux à ta peau naturelle.</div>
+      </div>
+      <div class="phototype-grid" id="phototypeGrid">
+        <div class="phototype-card" data-pt="1" onclick="selectPhototype(1)">
+          <div class="skin-dot" style="background:#f5e0c8"></div>
+          <div class="pt-label">Type I</div>
+          <div class="pt-sub">Très claire, taches de rousseur</div>
+        </div>
+        <div class="phototype-card" data-pt="2" onclick="selectPhototype(2)">
+          <div class="skin-dot" style="background:#f0d4b0"></div>
+          <div class="pt-label">Type II</div>
+          <div class="pt-sub">Claire, brûle facilement</div>
+        </div>
+        <div class="phototype-card" data-pt="3" onclick="selectPhototype(3)">
+          <div class="skin-dot" style="background:#d4a574"></div>
+          <div class="pt-label">Type III</div>
+          <div class="pt-sub">Intermédiaire, bronze</div>
+        </div>
+        <div class="phototype-card" data-pt="4" onclick="selectPhototype(4)">
+          <div class="skin-dot" style="background:#b87d4b"></div>
+          <div class="pt-label">Type IV</div>
+          <div class="pt-sub">Mate, bronze bien</div>
+        </div>
+        <div class="phototype-card" data-pt="5" onclick="selectPhototype(5)">
+          <div class="skin-dot" style="background:#8b5a2b"></div>
+          <div class="pt-label">Type V</div>
+          <div class="pt-sub">Foncée, bronze toujours</div>
+        </div>
+        <div class="phototype-card" data-pt="6" onclick="selectPhototype(6)">
+          <div class="skin-dot" style="background:#4a2c17"></div>
+          <div class="pt-label">Type VI</div>
+          <div class="pt-sub">Très foncée</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="nextStep(2)" id="btn-ob2" disabled style="opacity:0.5">Continuer</button>
+      <div class="step-dots">
+        <div class="step-dot"></div>
+        <div class="step-dot active"></div>
+        <div class="step-dot"></div>
+      </div>
+    </div>
+
+    <!-- Step 3: Objectif -->
+    <div class="onboard-step" id="ob-step-3">
+      <div class="onboard-header">
+        <div class="onboard-emoji">🎯</div>
+        <div class="onboard-title">Ton objectif</div>
+        <div class="onboard-desc">Comment Luma doit-elle orienter ses conseils ?</div>
+      </div>
+      <div class="obj-grid">
+        <div class="obj-card" data-obj="bronzing" onclick="selectObj('bronzing')">
+          <div class="obj-icon">🌟</div>
+          <div class="obj-label">Bronzage optimal</div>
+          <div class="obj-sub">Maximiser le bronzage tout en restant safe</div>
+        </div>
+        <div class="obj-card" data-obj="protection" onclick="selectObj('protection')">
+          <div class="obj-icon">🛡️</div>
+          <div class="obj-label">Protection max</div>
+          <div class="obj-sub">Priorité à la protection de la peau</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="finishOnboarding()" id="btn-ob3" disabled style="opacity:0.5">Commencer !</button>
+      <div class="step-dots">
+        <div class="step-dot"></div>
+        <div class="step-dot"></div>
+        <div class="step-dot active"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div class="page hidden" id="page-app">
+
+  <!-- ===== HOME ===== -->
+  <div class="main-page active" id="tab-home">
+    <div class="page-header">
+      <div class="page-header-title">Solara ☀️</div>
+      <div class="header-action" onclick="openLocationModal()">📍</div>
+    </div>
+    <div class="home-hero">
+      <div class="animated-sun">
+        <div class="sun-circle"></div>
+        <svg class="sun-rays" viewBox="0 0 130 130">
+          <defs><radialGradient id="rayGrad"><stop offset="0%" stop-color="#fbbf24" stop-opacity="0.8"/><stop offset="100%" stop-color="#fbbf24" stop-opacity="0"/></radialGradient></defs>
+          <g id="raysG"></g>
+        </svg>
+      </div>
+      <div class="luma-bubble" id="lumaBubble">
+        <div class="luma-name">☀️ Luma</div>
+        <div class="luma-text" id="lumaHomeText">Chargement de tes données...</div>
+      </div>
+    </div>
+    <div class="home-cards">
+      <!-- UV Card -->
+      <div class="card">
+        <div class="card-title">Indice UV maintenant · <span id="locationName">--</span></div>
+        <div class="uv-display">
+          <div class="uv-circle" id="uvCircle" style="background:#94a3b8">--</div>
+          <div class="uv-info">
+            <div class="uv-label" id="uvLabel">Chargement...</div>
+            <div class="uv-sub" id="uvSub">Localisation non définie</div>
+            <div class="uv-bar"><div class="uv-bar-fill" id="uvBarFill" style="width:0%;background:#94a3b8"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Countdown pic UV -->
+      <div class="card" id="countdownCard">
+        <div class="card-title">Pic UV aujourd'hui</div>
+        <div class="countdown-row">
+          <div>
+            <div class="countdown-time" id="peakUvTime">--:--</div>
+            <div class="countdown-label" id="peakUvLabel">Calcul en cours...</div>
+          </div>
+          <div id="peakUvVal" class="tag">UV --</div>
+        </div>
+      </div>
+
+      <!-- Météo multi-jours -->
+      <div class="card">
+        <div class="card-title">Prévisions 5 jours</div>
+        <div class="forecast-row" id="forecastRow">
+          <div class="spinner"></div>
+        </div>
+      </div>
+
+      <!-- Actions rapides -->
+      <div class="card">
+        <div class="card-title">Actions rapides</div>
+        <div class="quick-actions">
+          <div class="quick-btn" onclick="switchTab('session')">
+            <div class="qb-icon">⏱️</div>
+            <div class="qb-label">Lancer une session</div>
+          </div>
+          <div class="quick-btn" onclick="switchTab('dashboard')">
+            <div class="qb-icon">📊</div>
+            <div class="qb-label">Voir le dashboard</div>
+          </div>
+          <div class="quick-btn" onclick="switchTab('history')">
+            <div class="qb-icon">📈</div>
+            <div class="qb-label">Mon historique</div>
+          </div>
+          <div class="quick-btn" onclick="switchTab('profile')">
+            <div class="qb-icon">⚙️</div>
+            <div class="qb-label">Mon profil</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DASHBOARD ===== -->
+  <div class="main-page" id="tab-dashboard">
+    <div class="page-header">
+      <div class="page-header-title">Dashboard</div>
+    </div>
+    <div class="dash-content">
+      <div class="card">
+        <div class="card-title">Courbe UV de la journée</div>
+        <div class="uv-chart-wrap">
+          <svg class="uv-chart-svg" id="uvChartSvg" viewBox="0 0 340 120" preserveAspectRatio="none"></svg>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Météo détaillée</div>
+        <div class="weather-grid" id="weatherGrid">
+          <div class="weather-item"><div class="wi-icon">🌡️</div><div class="wi-val" id="wTemp">--°</div><div class="wi-label">Température</div></div>
+          <div class="weather-item"><div class="wi-icon">💧</div><div class="wi-val" id="wHumid">--%</div><div class="wi-label">Humidité</div></div>
+          <div class="weather-item"><div class="wi-icon">💨</div><div class="wi-val" id="wWind">-- km/h</div><div class="wi-label">Vent</div></div>
+          <div class="weather-item"><div class="wi-icon">☁️</div><div class="wi-val" id="wCloud">--%</div><div class="wi-label">Nuages</div></div>
+        </div>
+      </div>
+      <div class="card" id="environmentCard">
+        <div class="card-title">Facteurs d'environnement</div>
+        <div id="envFactors" style="display:flex;flex-direction:column;gap:8px;margin-top:4px"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SESSION ===== -->
+  <div class="main-page" id="tab-session">
+    <div class="page-header">
+      <div class="page-header-title">Session bronzage</div>
+    </div>
+    <div class="session-content">
+
+      <!-- Cream selection -->
+      <div class="card">
+        <div class="card-title">Crème solaire</div>
+        <div class="cream-list" id="creamList"></div>
+        <div class="add-cream-btn mt-8" onclick="openAddCreamModal()">
+          <span>＋</span> Ajouter une crème
+        </div>
+      </div>
+
+      <!-- Résultat calcul -->
+      <div class="result-card" id="resultCard" style="display:none">
+        <div class="card-title">Temps d'exposition recommandé</div>
+        <div class="result-main" id="resultTime">-- min</div>
+        <div class="result-sub" id="resultSub"></div>
+        <div class="result-tips" id="resultTips"></div>
+      </div>
+
+      <!-- Timer -->
+      <div class="card">
+        <div class="card-title">Timer de session</div>
+        <div class="timer-display">
+          <div class="timer-ring">
+            <svg viewBox="0 0 160 160" width="160" height="160">
+              <defs>
+                <linearGradient id="timerGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#f97316"/>
+                  <stop offset="100%" stop-color="#fbbf24"/>
+                </linearGradient>
+              </defs>
+              <circle class="ring-bg" cx="80" cy="80" r="68"/>
+              <circle class="ring-fill" id="timerRing" cx="80" cy="80" r="68"
+                stroke-dasharray="427" stroke-dashoffset="427"/>
+            </svg>
+            <div class="timer-center">
+              <div class="timer-time" id="timerDisplay">00:00</div>
+              <div class="timer-label" id="timerSubLabel">Prêt</div>
+            </div>
+          </div>
+          <div class="reapp-bar-wrap">
+            <div class="reapp-bar-label">
+              <span>Reapplication crème</span>
+              <span id="reappTime">--</span>
+            </div>
+            <div class="reapp-bar"><div class="reapp-bar-fill" id="reappFill" style="width:100%"></div></div>
+          </div>
+        </div>
+        <div class="timer-btns">
+          <button class="btn-primary" id="timerBtn" onclick="toggleTimer()">▶ Démarrer</button>
+          <button class="btn-danger" onclick="stopTimer()">⏹ Fin</button>
+        </div>
+      </div>
+
+      <!-- Mode -->
+      <div class="card">
+        <div class="card-title">Mode de session</div>
+        <div class="obj-grid" style="grid-template-columns:1fr 1fr">
+          <div class="obj-card" id="mode-bronzing" onclick="setMode('bronzing')">
+            <div class="obj-icon">🌟</div>
+            <div class="obj-label" style="font-size:0.8rem">Bronzage optimal</div>
+          </div>
+          <div class="obj-card" id="mode-protection" onclick="setMode('protection')">
+            <div class="obj-icon">🛡️</div>
+            <div class="obj-label" style="font-size:0.8rem">Protection max</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== PROFILE ===== -->
+  <div class="main-page" id="tab-profile">
+    <div class="page-header">
+      <div class="page-header-title">Mon profil</div>
+    </div>
+    <div class="profile-content">
+
+      <!-- Profil peau -->
+      <div class="card">
+        <div class="profile-section-title">Profil peau</div>
+        <div class="setting-row" onclick="openPhototypeEdit()">
+          <div class="setting-label">Phototype de peau</div>
+          <div class="setting-value" id="profilePt">--</div>
+        </div>
+        <div class="setting-row" onclick="openObjEdit()">
+          <div class="setting-label">Objectif</div>
+          <div class="setting-value" id="profileObj">--</div>
+        </div>
+      </div>
+
+      <!-- Luma IA -->
+      <div class="card">
+        <div class="profile-section-title">Luma — Intelligence Artificielle</div>
+        <div style="margin-bottom:10px;font-size:0.82rem;color:var(--text-light);line-height:1.4">
+          Optionnel. Renseigne une clé API pour activer Luma en mode IA. Sans clé, Luma fonctionne avec des conseils locaux intelligents.
+        </div>
+        <div class="profile-section-title" style="margin-bottom:6px">Fournisseur</div>
+        <div class="api-key-provider" id="providerChips">
+          <div class="provider-chip selected" data-provider="groq" onclick="selectProvider('groq')">Groq</div>
+          <div class="provider-chip" data-provider="gemini" onclick="selectProvider('gemini')">Gemini</div>
+          <div class="provider-chip" data-provider="openai" onclick="selectProvider('openai')">OpenAI</div>
+        </div>
+        <div class="form-group mt-12">
+          <label class="form-label">Clé API</label>
+          <div class="api-key-wrap">
+            <input type="password" id="apiKeyInput" class="form-input" placeholder="Colle ta clé ici..." style="width:100%">
+          </div>
+        </div>
+        <button class="btn-primary" onclick="saveApiKey()">Enregistrer la clé</button>
+      </div>
+
+      <!-- Paramètres -->
+      <div class="card">
+        <div class="profile-section-title">Paramètres</div>
+        <div class="setting-row">
+          <div class="setting-label">Thème nuit auto</div>
+          <div class="toggle on" id="nightToggle" onclick="toggleNightAuto()"></div>
+        </div>
+        <div class="setting-row">
+          <div class="setting-label">Notifications in-app</div>
+          <div class="toggle on" id="notifToggle" onclick="toggleNotifs()"></div>
+        </div>
+      </div>
+
+      <!-- Sécurité -->
+      <div class="card">
+        <div class="profile-section-title">Sécurité</div>
+        <div class="pwd-form">
+          <input type="password" class="form-input" id="newPwd1" placeholder="Nouveau mot de passe">
+          <input type="password" class="form-input" id="newPwd2" placeholder="Confirmer">
+          <button class="btn-secondary" onclick="changePassword()">Modifier le mot de passe</button>
+        </div>
+        <div id="pwdMsg" style="font-size:0.8rem;margin-top:8px;min-height:18px"></div>
+      </div>
+
+      <!-- Données -->
+      <div class="card">
+        <div class="profile-section-title">Mes données</div>
+        <button class="export-btn" onclick="exportData()">⬇️ Exporter mon historique (JSON)</button>
+        <button class="btn-danger" style="width:100%;margin-top:10px" onclick="clearHistory()">🗑️ Effacer l'historique</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ===== HISTORY ===== -->
+  <div class="main-page" id="tab-history">
+    <div class="page-header">
+      <div class="page-header-title">Mon historique</div>
+    </div>
+    <div class="history-content">
+
+      <!-- Progression -->
+      <div class="card progress-card">
+        <div class="card-title">Progression du bronzage</div>
+        <div class="progress-skins" id="progressSkins"></div>
+        <div id="progressLabel" style="font-size:0.85rem;color:var(--text-light)"></div>
+      </div>
+
+      <!-- Stats semaine -->
+      <div class="card">
+        <div class="card-title">Cette semaine</div>
+        <div class="weather-grid" id="weekStats">
+          <div class="weather-item"><div class="wi-icon">☀️</div><div class="wi-val" id="statSessions">0</div><div class="wi-label">Sessions</div></div>
+          <div class="weather-item"><div class="wi-icon">⏱️</div><div class="wi-val" id="statTime">0h</div><div class="wi-label">Exposé</div></div>
+          <div class="weather-item"><div class="wi-icon">🧴</div><div class="wi-val" id="statCreams">0</div><div class="wi-label">Applications</div></div>
+          <div class="weather-item"><div class="wi-icon">📊</div><div class="wi-val" id="statAvgUV">0</div><div class="wi-label">UV moyen</div></div>
+        </div>
+      </div>
+
+      <!-- Historique sessions -->
+      <div class="card">
+        <div class="card-title">Sessions récentes</div>
+        <div class="session-log" id="sessionLog"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="switchTab('home')">
+      <div class="nav-icon">🏠</div>
+      <div class="nav-label">Accueil</div>
+    </div>
+    <div class="nav-item" id="nav-dashboard" onclick="switchTab('dashboard')">
+      <div class="nav-icon">📊</div>
+      <div class="nav-label">Dashboard</div>
+    </div>
+    <div class="nav-item" id="nav-session" onclick="switchTab('session')">
+      <div class="nav-icon">⏱️</div>
+      <div class="nav-label">Session</div>
+    </div>
+    <div class="nav-item" id="nav-history" onclick="switchTab('history')">
+      <div class="nav-icon">📈</div>
+      <div class="nav-label">Historique</div>
+    </div>
+    <div class="nav-item" id="nav-profile" onclick="switchTab('profile')">
+      <div class="nav-icon">👤</div>
+      <div class="nav-label">Profil</div>
+    </div>
+  </nav>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Location Modal -->
+<div class="modal-overlay" id="locationModal" onclick="closeModal('locationModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📍 Localisation</div>
+    <div class="location-btns">
+      <div class="loc-btn" onclick="useGeolocation()">
+        <div class="lb-icon">🎯</div>
+        <div>
+          <div class="lb-text">Utiliser ma position</div>
+          <div style="font-size:0.75rem;color:var(--text-light)">Géolocalisation automatique</div>
+        </div>
+      </div>
+    </div>
+    <div class="divider">ou</div>
+    <div class="form-group">
+      <label class="form-label">Entrer une ville</label>
+      <input type="text" class="form-input" id="cityInput" placeholder="Paris, Nice, Marseille...">
+    </div>
+    <button class="btn-primary" onclick="searchCity()">Confirmer</button>
+  </div>
+</div>
+
+<!-- Add Cream Modal -->
+<div class="modal-overlay" id="addCreamModal" onclick="closeModal('addCreamModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🧴 Ajouter une crème</div>
+    <div class="form-group">
+      <label class="form-label">Nom de la crème (optionnel)</label>
+      <input type="text" class="form-input" id="creamName" placeholder="Ex: Ambre Solaire, Nivea...">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Indice SPF</label>
+      <div class="spf-chips" id="spfChips">
+        <div class="spf-chip" data-spf="15" onclick="selectSpf(15)">SPF 15</div>
+        <div class="spf-chip" data-spf="20" onclick="selectSpf(20)">SPF 20</div>
+        <div class="spf-chip" data-spf="30" onclick="selectSpf(30)">SPF 30</div>
+        <div class="spf-chip" data-spf="50" onclick="selectSpf(50)">SPF 50</div>
+        <div class="spf-chip" data-spf="50+" onclick="selectSpf(50)">SPF 50+</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Protection</label>
+      <div class="uv-type-chips">
+        <div class="uv-chip selected" data-type="both" onclick="selectUvType('both')">☀️ UVA + UVB</div>
+        <div class="uv-chip" data-type="uvb" onclick="selectUvType('uvb')">UVB seul</div>
+      </div>
+    </div>
+    <button class="btn-primary" onclick="saveCream()">Enregistrer</button>
+  </div>
+</div>
+
+<!-- Phototype Edit Modal -->
+<div class="modal-overlay" id="phototypeModal" onclick="closeModal('phototypeModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🧬 Modifier le phototype</div>
+    <div class="phototype-grid" id="phototypeGridEdit">
+      <div class="phototype-card" data-pt="1" onclick="selectPhototypeEdit(1)">
+        <div class="skin-dot" style="background:#f5e0c8"></div>
+        <div class="pt-label">Type I</div>
+        <div class="pt-sub">Très claire</div>
+      </div>
+      <div class="phototype-card" data-pt="2" onclick="selectPhototypeEdit(2)">
+        <div class="skin-dot" style="background:#f0d4b0"></div>
+        <div class="pt-label">Type II</div>
+        <div class="pt-sub">Claire</div>
+      </div>
+      <div class="phototype-card" data-pt="3" onclick="selectPhototypeEdit(3)">
+        <div class="skin-dot" style="background:#d4a574"></div>
+        <div class="pt-label">Type III</div>
+        <div class="pt-sub">Intermédiaire</div>
+      </div>
+      <div class="phototype-card" data-pt="4" onclick="selectPhototypeEdit(4)">
+        <div class="skin-dot" style="background:#b87d4b"></div>
+        <div class="pt-label">Type IV</div>
+        <div class="pt-sub">Mate</div>
+      </div>
+      <div class="phototype-card" data-pt="5" onclick="selectPhototypeEdit(5)">
+        <div class="skin-dot" style="background:#8b5a2b"></div>
+        <div class="pt-label">Type V</div>
+        <div class="pt-sub">Foncée</div>
+      </div>
+      <div class="phototype-card" data-pt="6" onclick="selectPhototypeEdit(6)">
+        <div class="skin-dot" style="background:#4a2c17"></div>
+        <div class="pt-label">Type VI</div>
+        <div class="pt-sub">Très foncée</div>
+      </div>
+    </div>
+    <button class="btn-primary mt-12" onclick="savePhototypeEdit()">Enregistrer</button>
+  </div>
+</div>
+
+<!-- Objectif Edit Modal -->
+<div class="modal-overlay" id="objModal" onclick="closeModal('objModal')">
+  <div class="modal-sheet" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🎯 Modifier l'objectif</div>
+    <div class="obj-grid">
+      <div class="obj-card" data-obj="bronzing" onclick="selectObjEdit('bronzing')">
+        <div class="obj-icon">🌟</div>
+        <div class="obj-label">Bronzage optimal</div>
+      </div>
+      <div class="obj-card" data-obj="protection" onclick="selectObjEdit('protection')">
+        <div class="obj-icon">🛡️</div>
+        <div class="obj-label">Protection max</div>
+      </div>
+    </div>
+    <button class="btn-primary mt-12" onclick="saveObjEdit()">Enregistrer</button>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let state = {
+  authenticated: false,
+  onboarded: false,
+  phototype: null,
+  objective: 'bronzing',
+  creams: [],
+  selectedCream: null,
+  location: null,
+  weather: null,
+  uvData: null,
+  sessions: [],
+  timerRunning: false,
+  timerPaused: false,
+  timerSeconds: 0,
+  timerMax: 0,
+  timerInterval: null,
+  reappSeconds: 0,
+  reappMax: 0,
+  reappInterval: null,
+  currentMode: 'bronzing',
+  nightAuto: true,
+  notifEnabled: true,
+  apiKey: null,
+  apiProvider: 'groq',
+  newCreamSpf: null,
+  newCreamType: 'both',
+  editPhototype: null,
+  editObj: null,
+};
+
+// ===== STORAGE =====
+function save() { localStorage.setItem('solara_state', JSON.stringify(state)); }
+function load() {
+  const d = localStorage.getItem('solara_state');
+  if (d) {
+    const loaded = JSON.parse(d);
+    // Don't overwrite timer state
+    state = { ...state, ...loaded, timerRunning:false, timerInterval:null, reappInterval:null };
+  }
+}
+
+// ===== PASSWORD =====
+function hashPwd(pwd) {
+  let hash = 0;
+  for (let i=0; i<pwd.length; i++) { hash = ((hash<<5)-hash)+pwd.charCodeAt(i); hash|=0; }
+  return hash.toString(36);
+}
+
+function tryLogin() {
+  const input = document.getElementById('loginInput').value;
+  if (!input) return;
+  const storedHash = localStorage.getItem('solara_pwd');
+  if (!storedHash) {
+    // First time setup
+    if (input.length < 4) { document.getElementById('loginError').textContent = 'Au moins 4 caractères.'; return; }
+    localStorage.setItem('solara_pwd', hashPwd(input));
+    document.getElementById('loginHint').textContent = '';
+    document.getElementById('loginError').textContent = '';
+    proceed();
+  } else {
+    if (hashPwd(input) === storedHash) {
+      document.getElementById('loginError').textContent = '';
+      proceed();
+    } else {
+      document.getElementById('loginError').textContent = 'Mot de passe incorrect.';
+      document.getElementById('loginInput').value = '';
+    }
+  }
+}
+
+function proceed() {
+  load();
+  if (!state.onboarded) {
+    showPage('page-onboarding');
+    checkFirstTime();
+  } else {
+    showPage('page-app');
+    initApp();
+  }
+}
+
+function checkFirstTime() {
+  const storedHash = localStorage.getItem('solara_pwd');
+  const allKeys = Object.keys(localStorage);
+  if (!localStorage.getItem('solara_state')) {
+    document.getElementById('loginHint').textContent = '👆 Crée ton mot de passe pour commencer.';
+  }
+}
+
+window.onload = () => {
+  const storedHash = localStorage.getItem('solara_pwd');
+  if (!storedHash) {
+    document.getElementById('loginHint').textContent = '✨ Première connexion — crée ton mot de passe.';
+  }
+  initNightMode();
+  generateStars();
+};
+
+// ===== PAGES =====
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  document.getElementById(id).classList.remove('hidden');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.main-page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('nav-'+tab).classList.add('active');
+  if (tab === 'history') renderHistory();
+  if (tab === 'session') renderCreams();
+  if (tab === 'profile') renderProfile();
+  if (tab === 'dashboard') renderDashboard();
+}
+
+// ===== ONBOARDING =====
+let obPhototype = null, obObj = null;
+
+function selectPhototype(pt) {
+  obPhototype = pt;
+  document.querySelectorAll('#phototypeGrid .phototype-card').forEach(c => {
+    c.classList.toggle('selected', parseInt(c.dataset.pt) === pt);
+  });
+  const btn = document.getElementById('btn-ob2');
+  btn.disabled = false; btn.style.opacity = '1';
+}
+
+function selectObj(obj) {
+  obObj = obj;
+  document.querySelectorAll('.obj-card[data-obj]').forEach(c => {
+    c.classList.toggle('selected', c.dataset.obj === obj);
+  });
+  const btn = document.getElementById('btn-ob3');
+  btn.disabled = false; btn.style.opacity = '1';
+}
+
+function nextStep(from) {
+  document.getElementById('ob-step-'+from).classList.remove('active');
+  document.getElementById('ob-step-'+(from+1)).classList.add('active');
+}
+
+function finishOnboarding() {
+  state.phototype = obPhototype;
+  state.objective = obObj;
+  state.currentMode = obObj;
+  state.onboarded = true;
+  // Add demo creams
+  state.creams = [
+    { id:1, name:'Ambre Solaire', spf:50, type:'both' },
+    { id:2, name:'Garnier Sensitive', spf:30, type:'both' },
+  ];
+  save();
+  showPage('page-app');
+  initApp();
+}
+
+// ===== APP INIT =====
+function initApp() {
+  initNightMode();
+  setMode(state.currentMode || state.objective || 'bronzing');
+  if (state.location) {
+    fetchWeather(state.location.lat, state.location.lon, state.location.name);
+  } else {
+    document.getElementById('lumaHomeText').textContent = "Bonjour ! Commence par définir ta localisation 📍";
+  }
+  renderHistory();
+  renderCreams();
+  renderProfile();
+  lumaGreeting();
+  generateSunRays();
+}
+
+// ===== NIGHT MODE =====
+function initNightMode() {
+  if (!state.nightAuto) return;
+  const h = new Date().getHours();
+  const isNight = h >= 20 || h < 7;
+  document.documentElement.setAttribute('data-theme', isNight ? 'night' : 'day');
+}
+
+function toggleNightAuto() {
+  state.nightAuto = !state.nightAuto;
+  document.getElementById('nightToggle').classList.toggle('on', state.nightAuto);
+  initNightMode();
+  save();
+}
+
+function toggleNotifs() {
+  state.notifEnabled = !state.notifEnabled;
+  document.getElementById('notifToggle').classList.toggle('on', state.notifEnabled);
+  save();
+}
+
+// ===== STARS =====
+function generateStars() {
+  const container = document.getElementById('stars');
+  for (let i=0; i<80; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    const size = Math.random()*2+1;
+    star.style.cssText = `width:${size}px;height:${size}px;top:${Math.random()*100}%;left:${Math.random()*100}%;animation-delay:${Math.random()*3}s;animation-duration:${2+Math.random()*3}s`;
+    container.appendChild(star);
+  }
+}
+
+// ===== SUN RAYS =====
+function generateSunRays() {
+  const g = document.getElementById('raysG');
+  if (!g) return;
+  g.innerHTML = '';
+  for (let i=0; i<12; i++) {
+    const angle = (i/12)*360;
+    const rect = document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x','63');rect.setAttribute('y','10');
+    rect.setAttribute('width','4');rect.setAttribute('height','16');
+    rect.setAttribute('rx','2');rect.setAttribute('fill','#fbbf24');
+    rect.setAttribute('opacity','0.7');
+    rect.setAttribute('transform',`rotate(${angle},65,65)`);
+    g.appendChild(rect);
+  }
+}
+
+// ===== LOCATION =====
+function openLocationModal() { openModal('locationModal'); }
+
+function useGeolocation() {
+  if (!navigator.geolocation) { alert("Géolocalisation non disponible."); return; }
+  closeModal('locationModal');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const { latitude: lat, longitude: lon } = pos.coords;
+    reverseGeocode(lat, lon);
+    fetchWeather(lat, lon, null);
+  }, () => {
+    showLumaAlert("Géolocalisation refusée. Entre ta ville manuellement.");
+  });
+}
+
+async function reverseGeocode(lat, lon) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+    const d = await r.json();
+    const name = d.address.city || d.address.town || d.address.village || 'Ta position';
+    state.location = { lat, lon, name };
+    document.getElementById('locationName').textContent = name;
+    save();
+  } catch(e) {
+    state.location = { lat, lon, name: 'Ma position' };
+    document.getElementById('locationName').textContent = 'Ma position';
+    save();
+  }
+}
+
+async function searchCity() {
+  const city = document.getElementById('cityInput').value.trim();
+  if (!city) return;
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`);
+    const d = await r.json();
+    if (!d.length) { alert("Ville introuvable."); return; }
+    const { lat, lon, display_name } = d[0];
+    const name = city;
+    state.location = { lat: parseFloat(lat), lon: parseFloat(lon), name };
+    closeModal('locationModal');
+    fetchWeather(parseFloat(lat), parseFloat(lon), name);
+    save();
+  } catch(e) { alert("Erreur de recherche."); }
+}
+
+// ===== WEATHER API =====
+async function fetchWeather(lat, lon, name) {
+  document.getElementById('locationName').textContent = name || state.location?.name || '...';
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&hourly=uv_index,temperature_2m,relativehumidity_2m,windspeed_10m,cloudcover&daily=uv_index_max,temperature_2m_max,temperature_2m_min,weathercode&timezone=auto&forecast_days=5`;
+    const r = await fetch(url);
+    const d = await r.json();
+    state.weather = d;
+    save();
+    renderWeather(d);
+    renderUV(d);
+    renderForecast(d);
+    renderDashboard();
+    lumaContextMessage(d);
+  } catch(e) {
+    document.getElementById('uvLabel').textContent = 'Erreur de chargement';
+    document.getElementById('uvSub').textContent = 'Vérifie ta connexion';
+  }
+}
+
+// ===== UV RENDERING =====
+function getUvInfo(uv) {
+  if (uv <= 2) return { label:'Faible', color:'#22c55e', badgeClass:'badge-uv-low' };
+  if (uv <= 5) return { label:'Modéré', color:'#eab308', badgeClass:'badge-uv-mod' };
+  if (uv <= 7) return { label:'Élevé', color:'#f97316', badgeClass:'badge-uv-high' };
+  if (uv <= 10) return { label:'Très élevé', color:'#ef4444', badgeClass:'badge-uv-vhigh' };
+  return { label:'Extrême', color:'#8b5cf6', badgeClass:'badge-uv-extreme' };
+}
+
+function renderUV(d) {
+  const now = new Date();
+  const hourNow = now.getHours();
+  const uvHourly = d.hourly.uv_index;
+  const currentUV = Math.round(uvHourly[hourNow] || 0);
+  const info = getUvInfo(currentUV);
+
+  document.getElementById('uvCircle').textContent = currentUV;
+  document.getElementById('uvCircle').style.background = `linear-gradient(135deg, ${info.color}, ${info.color}bb)`;
+  document.getElementById('uvLabel').textContent = `UV ${info.label}`;
+  document.getElementById('uvBarFill').style.width = `${Math.min(currentUV/12*100,100)}%`;
+  document.getElementById('uvBarFill').style.background = info.color;
+
+  // Detect environment
+  const lat = state.location?.lat || 0;
+  const lon = state.location?.lon || 0;
+  const altitude = 0; // Would need elevation API
+  const nearSea = lat > 30 && lat < 50; // Approximation méditerranée
+  let uvMultiplier = 1;
+  let envNotes = [];
+  if (nearSea) { uvMultiplier += 0.25; envNotes.push('🌊 Réverbération eau +25%'); }
+
+  const effectiveUV = Math.round(currentUV * uvMultiplier);
+  document.getElementById('uvSub').textContent = effectiveUV > currentUV ? `UV effectif ~${effectiveUV} (avec réverbération)` : getUvDescription(currentUV);
+
+  // Peak UV
+  const maxUV = Math.max(...uvHourly.slice(0,24));
+  const peakHour = uvHourly.slice(0,24).indexOf(maxUV);
+  document.getElementById('peakUvTime').textContent = `${String(peakHour).padStart(2,'0')}:00`;
+  document.getElementById('peakUvVal').textContent = `UV ${Math.round(maxUV)}`;
+  document.getElementById('peakUvVal').className = `tag ${getUvInfo(maxUV).badgeClass}`;
+
+  const diff = peakHour - hourNow;
+  if (diff > 0) {
+    document.getElementById('peakUvLabel').textContent = `Dans ${diff}h — évite 11h–15h`;
+  } else if (diff === 0) {
+    document.getElementById('peakUvLabel').textContent = "⚠️ Pic UV maintenant !";
+  } else {
+    document.getElementById('peakUvLabel').textContent = "Pic dépassé pour aujourd'hui";
+  }
+
+  // Store for session calc
+  state.uvData = { current: currentUV, effective: effectiveUV, hourly: uvHourly, envNotes };
+
+  // Recalculate if cream selected
+  if (state.selectedCream) calculateExposure();
+
+  // Environment card
+  renderEnvFactors(envNotes, currentUV);
+}
+
+function getUvDescription(uv) {
+  if (uv <= 2) return 'Protection minimale requise';
+  if (uv <= 5) return 'Protection recommandée';
+  if (uv <= 7) return 'Protection essentielle';
+  if (uv <= 10) return 'Protection maximale requise';
+  return '⚠️ Évite l\'exposition directe';
+}
+
+function renderEnvFactors(notes, uv) {
+  const el = document.getElementById('envFactors');
+  const factors = [
+    ...notes,
+    uv > 8 ? '⚠️ Indice UV extrême — limiter l\'exposition' : null,
+    '🌍 Données Open-Meteo en temps réel',
+  ].filter(Boolean);
+  el.innerHTML = factors.map(f => `<div style="font-size:0.82rem;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(249,115,22,0.08)">${f}</div>`).join('');
+}
+
+// ===== FORECAST =====
+const WEATHER_ICONS = { 0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌦️',61:'🌧️',71:'🌨️',80:'🌦️',95:'⛈️' };
+const DAYS_FR = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+
+function renderForecast(d) {
+  const row = document.getElementById('forecastRow');
+  row.innerHTML = '';
+  const today = new Date();
+  for (let i=0; i<5; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate()+i);
+    const code = d.daily.weathercode[i];
+    const icon = WEATHER_ICONS[code] || '🌤️';
+    const maxT = Math.round(d.daily.temperature_2m_max[i]);
+    const uv = Math.round(d.daily.uv_index_max[i]);
+    const uvInfo = getUvInfo(uv);
+    const div = document.createElement('div');
+    div.className = 'forecast-day';
+    if (i===0) div.style.background = 'rgba(249,115,22,0.12)';
+    div.innerHTML = `
+      <div class="fd-day">${i===0?'Auj':DAYS_FR[date.getDay()]}</div>
+      <div class="fd-icon">${icon}</div>
+      <div class="fd-temp">${maxT}°</div>
+      <div class="fd-uv" style="color:${uvInfo.color}">UV ${uv}</div>
+    `;
+    row.appendChild(div);
+  }
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  if (!state.weather) return;
+  const d = state.weather;
+  const hourNow = new Date().getHours();
+
+  // Weather grid
+  document.getElementById('wTemp').textContent = `${Math.round(d.hourly.temperature_2m[hourNow])}°`;
+  document.getElementById('wHumid').textContent = `${d.hourly.relativehumidity_2m[hourNow]}%`;
+  document.getElementById('wWind').textContent = `${Math.round(d.hourly.windspeed_10m[hourNow])} km/h`;
+  document.getElementById('wCloud').textContent = `${d.hourly.cloudcover[hourNow]}%`;
+
+  // UV Chart
+  drawUVChart(d.hourly.uv_index.slice(0,24), hourNow);
+}
+
+function drawUVChart(uvs, hourNow) {
+  const svg = document.getElementById('uvChartSvg');
+  const W=340, H=120, PAD=20;
+  const max = Math.max(...uvs, 1);
+  const pts = uvs.map((v,i) => {
+    const x = PAD + (i/(uvs.length-1))*(W-PAD*2);
+    const y = H-PAD - (v/max)*(H-PAD*2);
+    return `${x},${y}`;
+  });
+
+  const nowX = PAD + (hourNow/(uvs.length-1))*(W-PAD*2);
+
+  svg.innerHTML = `
+    <defs>
+      <linearGradient id="uvGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#f97316" stop-opacity="0.3"/>
+        <stop offset="100%" stop-color="#f97316" stop-opacity="0.02"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${pts.join(' ')} ${W-PAD},${H-PAD} ${PAD},${H-PAD}" fill="url(#uvGrad)"/>
+    <polyline points="${pts.join(' ')}" fill="none" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <line x1="${nowX}" y1="${PAD}" x2="${nowX}" y2="${H-PAD}" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,4"/>
+    <circle cx="${nowX}" cy="${H-PAD-(uvs[hourNow]/max)*(H-PAD*2)}" r="5" fill="#f97316" stroke="white" stroke-width="2"/>
+    ${[0,6,12,18,23].map(h => {
+      const x = PAD + (h/(uvs.length-1))*(W-PAD*2);
+      return `<text x="${x}" y="${H-4}" text-anchor="middle" fill="#9ca3af" font-size="9">${String(h).padStart(2,'0')}h</text>`;
+    }).join('')}
+  `;
+}
+
+// ===== CREAMS =====
+function renderCreams() {
+  const list = document.getElementById('creamList');
+  if (!state.creams.length) {
+    list.innerHTML = '<div style="color:var(--text-light);font-size:0.85rem;text-align:center;padding:10px">Ajoute ta première crème 🧴</div>';
+    return;
+  }
+  list.innerHTML = state.creams.map(c => `
+    <div class="cream-item ${state.selectedCream?.id===c.id?'selected':''}" onclick="selectCream(${c.id})">
+      <div class="ci-spf">SPF ${c.spf}</div>
+      <div>
+        <div class="ci-name">${c.name||'Crème sans nom'}</div>
+        <div class="ci-type">${c.type==='both'?'UVA + UVB':'UVB seul'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function selectCream(id) {
+  state.selectedCream = state.creams.find(c => c.id===id);
+  renderCreams();
+  calculateExposure();
+}
+
+function openAddCreamModal() { openModal('addCreamModal'); }
+
+function selectSpf(spf) {
+  state.newCreamSpf = spf;
+  document.querySelectorAll('.spf-chip').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.spf)===spf || c.dataset.spf===spf+'+'||c.dataset.spf===String(spf)));
+}
+
+function selectUvType(type) {
+  state.newCreamType = type;
+  document.querySelectorAll('.uv-chip').forEach(c => c.classList.toggle('selected', c.dataset.type===type));
+}
+
+function saveCream() {
+  if (!state.newCreamSpf) { alert("Sélectionne un SPF."); return; }
+  const name = document.getElementById('creamName').value.trim();
+  state.creams.push({ id: Date.now(), name: name||'', spf: state.newCreamSpf, type: state.newCreamType||'both' });
+  state.newCreamSpf = null; state.newCreamType = 'both';
+  document.getElementById('creamName').value = '';
+  document.querySelectorAll('.spf-chip, .uv-chip').forEach(c => c.classList.remove('selected'));
+  document.querySelector('.uv-chip[data-type="both"]').classList.add('selected');
+  save(); closeModal('addCreamModal'); renderCreams();
+}
+
+// ===== EXPOSURE CALCULATION =====
+function calculateExposure() {
+  if (!state.selectedCream || !state.uvData) return;
+  const uv = state.uvData.effective || state.uvData.current || 3;
+  const spf = state.selectedCream.spf;
+  const pt = state.phototype || 3;
+  const mode = state.currentMode;
+
+  // MED (Minimal Erythemal Dose) par phototype en minutes sous UV=1
+  const medBase = [null, 10, 15, 20, 30, 40, 60][pt];
+
+  // Temps avant coup de soleil sans protection = MED / UV
+  const timeWithoutProt = medBase / uv;
+
+  // Avec SPF = timeWithoutProt * SPF
+  let safeTime = Math.round(timeWithoutProt * spf);
+
+  // Ajustements mode
+  if (mode === 'bronzing') safeTime = Math.round(safeTime * 0.7); // Marge de sécurité légère
+  if (mode === 'protection') safeTime = Math.round(safeTime * 0.5); // Très conservative
+
+  // Reapplication toutes les 2h max (120 min) ou moins si SPF bas
+  const reappInterval = spf >= 30 ? 120 : spf >= 15 ? 90 : 60;
+
+  const finalTime = Math.min(safeTime, reappInterval);
+  state.timerMax = finalTime * 60;
+  state.reappMax = reappInterval * 60;
+
+  // Tips
+  const tips = [];
+  if (uv >= 8) tips.push('⚠️ UV très élevé — expose-toi le matin ou après 16h');
+  if (pt <= 2) tips.push('🔴 Peau sensible — sois très prudent(e)');
+  if (mode === 'bronzing') tips.push('✨ Retourne-toi toutes les ' + Math.round(finalTime/2) + ' min pour un bronzage uniforme');
+  tips.push('🧴 Réapplique toutes les ' + reappInterval + ' min ou après la baignade');
+  if (state.selectedCream.type !== 'both') tips.push('⚡ Ta crème ne protège pas des UVA — utilise une protection UVA+UVB');
+
+  document.getElementById('resultCard').style.display = 'block';
+  document.getElementById('resultTime').textContent = `${finalTime} min`;
+  document.getElementById('resultSub').textContent = `SPF ${spf} · UV ${uv} · Phototype ${pt} · Mode ${mode === 'bronzing' ? 'bronzage' : 'protection'}`;
+  document.getElementById('resultTips').innerHTML = tips.map(t => `<div class="result-tip"><span>${t}</span></div>`).join('');
+
+  document.getElementById('reappTime').textContent = `/ ${reappInterval} min`;
+  updateTimerRing(0);
+}
+
+// ===== TIMER =====
+function toggleTimer() {
+  if (!state.timerRunning) startTimer();
+  else pauseTimer();
+}
+
+function startTimer() {
+  if (!state.selectedCream) { showLumaAlert("Sélectionne une crème avant de démarrer !"); return; }
+  if (!state.uvData) { showLumaAlert("Localisation requise pour calculer le temps d'exposition."); return; }
+
+  state.timerRunning = true;
+  state.timerPaused = false;
+  document.getElementById('timerBtn').textContent = '⏸ Pause';
+  document.getElementById('timerSubLabel').textContent = 'En cours';
+
+  if (state.timerMax === 0) calculateExposure();
+
+  state.timerInterval = setInterval(() => {
+    state.timerSeconds++;
+    state.reappSeconds++;
+    updateTimerDisplay();
+    updateReappBar();
+
+    // Alert at 80% of safe time
+    if (state.timerSeconds === Math.floor(state.timerMax * 0.8)) {
+      showLumaAlert(`⏰ Plus que ${Math.round(state.timerMax*0.2/60)} min d'exposition recommandée !`);
+    }
+    // Alert at max time
+    if (state.timerSeconds >= state.timerMax) {
+      showNotif('🌞 Temps d\'exposition atteint ! Va à l\'ombre et réapplique ta crème.');
+    }
+    // Reapplication alert
+    if (state.reappSeconds >= state.reappMax) {
+      state.reappSeconds = 0;
+      showNotif('🧴 C\'est l\'heure de réappliquer ta crème solaire !');
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  state.timerRunning = false;
+  state.timerPaused = true;
+  clearInterval(state.timerInterval);
+  document.getElementById('timerBtn').textContent = '▶ Reprendre';
+  document.getElementById('timerSubLabel').textContent = 'En pause';
+}
+
+function stopTimer() {
+  if (state.timerSeconds === 0) return;
+  clearInterval(state.timerInterval);
+  state.timerRunning = false;
+  state.timerPaused = false;
+
+  // Save session
+  const session = {
+    id: Date.now(),
+    date: new Date().toISOString(),
+    duration: state.timerSeconds,
+    cream: state.selectedCream,
+    uv: state.uvData?.current || 0,
+    location: state.location?.name || 'Inconnu',
+    mode: state.currentMode,
+  };
+  state.sessions.unshift(session);
+  if (state.sessions.length > 100) state.sessions.pop();
+
+  // Reset
+  state.timerSeconds = 0;
+  state.reappSeconds = 0;
+  updateTimerDisplay();
+  updateTimerRing(0);
+  document.getElementById('timerBtn').textContent = '▶ Démarrer';
+  document.getElementById('timerSubLabel').textContent = 'Terminé ✓';
+  document.getElementById('reappFill').style.width = '100%';
+
+  save();
+  showLumaAlert(`Session terminée ! ${formatTime(session.duration)} d'exposition enregistrées 🌟`);
+  renderHistory();
+}
+
+function updateTimerDisplay() {
+  document.getElementById('timerDisplay').textContent = formatTime(state.timerSeconds);
+  updateTimerRing(state.timerSeconds / Math.max(state.timerMax, 1));
+}
+
+function updateTimerRing(progress) {
+  const circumference = 427;
+  const offset = circumference - progress * circumference;
+  document.getElementById('timerRing').style.strokeDashoffset = offset;
+}
+
+function updateReappBar() {
+  const progress = state.reappSeconds / Math.max(state.reappMax, 1);
+  document.getElementById('reappFill').style.width = `${(1-progress)*100}%`;
+}
+
+function formatTime(s) {
+  const m = Math.floor(s/60), sec = s%60;
+  return `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+
+// ===== MODE =====
+function setMode(mode) {
+  state.currentMode = mode;
+  document.getElementById('mode-bronzing').classList.toggle('selected', mode==='bronzing');
+  document.getElementById('mode-protection').classList.toggle('selected', mode==='protection');
+  if (state.selectedCream && state.uvData) calculateExposure();
+  save();
+}
+
+// ===== PROFILE =====
+function renderProfile() {
+  const ptLabels = ['','Type I','Type II','Type III','Type IV','Type V','Type VI'];
+  document.getElementById('profilePt').textContent = ptLabels[state.phototype] || '--';
+  document.getElementById('profileObj').textContent = state.objective === 'bronzing' ? 'Bronzage optimal' : 'Protection max';
+  document.getElementById('nightToggle').classList.toggle('on', state.nightAuto);
+  document.getElementById('notifToggle').classList.toggle('on', state.notifEnabled);
+  if (state.apiKey) document.getElementById('apiKeyInput').value = state.apiKey;
+  document.querySelectorAll('.provider-chip').forEach(c => c.classList.toggle('selected', c.dataset.provider === state.apiProvider));
+}
+
+function openPhototypeEdit() { openModal('phototypeModal'); }
+function openObjEdit() { openModal('objModal'); }
+
+function selectPhototypeEdit(pt) {
+  state.editPhototype = pt;
+  document.querySelectorAll('#phototypeGridEdit .phototype-card').forEach(c => c.classList.toggle('selected', parseInt(c.dataset.pt)===pt));
+}
+function savePhototypeEdit() {
+  if (!state.editPhototype) return;
+  state.phototype = state.editPhototype;
+  save(); closeModal('phototypeModal'); renderProfile();
+  if (state.selectedCream && state.uvData) calculateExposure();
+}
+function selectObjEdit(obj) {
+  state.editObj = obj;
+  document.querySelectorAll('#objModal .obj-card').forEach(c => c.classList.toggle('selected', c.dataset.obj===obj));
+}
+function saveObjEdit() {
+  if (!state.editObj) return;
+  state.objective = state.editObj;
+  state.currentMode = state.editObj;
+  setMode(state.editObj);
+  save(); closeModal('objModal'); renderProfile();
+}
+
+function selectProvider(p) {
+  state.apiProvider = p;
+  document.querySelectorAll('.provider-chip').forEach(c => c.classList.toggle('selected', c.dataset.provider===p));
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  state.apiKey = key || null;
+  save();
+  showLumaAlert(key ? `✅ Clé ${state.apiProvider} enregistrée. Luma est en mode IA !` : 'Clé supprimée. Luma passe en mode local.');
+}
+
+function changePassword() {
+  const p1 = document.getElementById('newPwd1').value;
+  const p2 = document.getElementById('newPwd2').value;
+  const msg = document.getElementById('pwdMsg');
+  if (!p1) { msg.textContent = 'Entre un nouveau mot de passe.'; msg.style.color='var(--coral)'; return; }
+  if (p1.length < 4) { msg.textContent = 'Minimum 4 caractères.'; msg.style.color='var(--coral)'; return; }
+  if (p1 !== p2) { msg.textContent = 'Les mots de passe ne correspondent pas.'; msg.style.color='var(--coral)'; return; }
+  localStorage.setItem('solara_pwd', hashPwd(p1));
+  msg.textContent = '✅ Mot de passe modifié.'; msg.style.color='var(--sun)';
+  document.getElementById('newPwd1').value = '';
+  document.getElementById('newPwd2').value = '';
+}
+
+function exportData() {
+  const data = { sessions: state.sessions, phototype: state.phototype, objective: state.objective, exportDate: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `solara-export-${new Date().toLocaleDateString('fr')}.json`;
+  a.click();
+}
+
+function clearHistory() {
+  if (!confirm('Effacer tout l\'historique des sessions ?')) return;
+  state.sessions = [];
+  save(); renderHistory();
+  showLumaAlert('Historique effacé.');
+}
+
+// ===== HISTORY =====
+const SKIN_COLORS = ['#f5e0c8','#f0d4b0','#d4a574','#b87d4b','#8b5a2b','#4a2c17'];
+const SKIN_LABELS = ['Naturelle','Légèrement dorée','Dorée','Bronze clair','Bronze','Bronze foncé'];
+
+function renderHistory() {
+  // Progress skins
+  const container = document.getElementById('progressSkins');
+  const sessionsThisWeek = getWeekSessions();
+  const totalMinutes = sessionsThisWeek.reduce((a,s) => a + s.duration/60, 0);
+  let bronzeLevel = 0;
+  if (totalMinutes > 30) bronzeLevel = 1;
+  if (totalMinutes > 90) bronzeLevel = 2;
+  if (totalMinutes > 180) bronzeLevel = 3;
+  if (totalMinutes > 360) bronzeLevel = 4;
+  if (totalMinutes > 600) bronzeLevel = 5;
+
+  container.innerHTML = SKIN_COLORS.map((c,i) => `<div class="skin-level ${i<=bronzeLevel?'current':''}" style="background:${c};border-color:${i===bronzeLevel?'var(--sun)':'transparent'}"></div>`).join('');
+  document.getElementById('progressLabel').textContent = SKIN_LABELS[bronzeLevel] + (bronzeLevel < 5 ? ` · ${Math.round(totalMinutes)} min cette semaine` : ' · Maximum atteint !');
+
+  // Week stats
+  document.getElementById('statSessions').textContent = sessionsThisWeek.length;
+  document.getElementById('statTime').textContent = `${Math.round(totalMinutes/60*10)/10}h`;
+  document.getElementById('statCreams').textContent = sessionsThisWeek.length;
+  const avgUV = sessionsThisWeek.length ? Math.round(sessionsThisWeek.reduce((a,s) => a+s.uv,0)/sessionsThisWeek.length) : 0;
+  document.getElementById('statAvgUV').textContent = avgUV;
+
+  // Session log
+  const log = document.getElementById('sessionLog');
+  if (!state.sessions.length) {
+    log.innerHTML = '<div class="no-history">Aucune session enregistrée encore 🌊<br>Lance ta première session !</div>';
+    return;
+  }
+  log.innerHTML = state.sessions.slice(0,10).map(s => {
+    const d = new Date(s.date);
+    const dateStr = `${d.getDate()}/${d.getMonth()+1}`;
+    const dur = formatTime(s.duration);
+    return `
+      <div class="log-item">
+        <div class="li-date">${dateStr}</div>
+        <div class="li-info">
+          <div class="li-title">${dur} · SPF ${s.cream?.spf||'?'}</div>
+          <div class="li-sub">UV ${s.uv} · ${s.location} · ${s.mode==='bronzing'?'Bronzage':'Protection'}</div>
+        </div>
+        <div class="li-score">${s.uv >= 8 ? '⚠️' : s.mode==='bronzing' ? '🌟' : '🛡️'}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function getWeekSessions() {
+  const now = new Date();
+  const weekAgo = new Date(now.getTime() - 7*24*60*60*1000);
+  return state.sessions.filter(s => new Date(s.date) > weekAgo);
+}
+
+// ===== LUMA =====
+function lumaGreeting() {
+  const h = new Date().getHours();
+  let greeting = '';
+  if (h < 12) greeting = 'Bonjour ! Belle journée en vue pour bronzer ☀️';
+  else if (h < 18) greeting = 'Bonne après-midi ! L\'heure idéale pour surveiller les UV 🌊';
+  else greeting = 'Bonsoir ! Bilan de ta journée en cours 🌙';
+
+  if (!state.location) {
+    greeting += ' Définis ta localisation pour commencer.';
+  }
+  document.getElementById('lumaHomeText').textContent = greeting;
+}
+
+function lumaContextMessage(d) {
+  const hourNow = new Date().getHours();
+  const uv = d.hourly.uv_index[hourNow];
+  let msg = '';
+
+  if (uv <= 2) msg = `UV faible (${Math.round(uv)}) — bonne journée pour se balader sans trop s'inquiéter 🌿`;
+  else if (uv <= 5) msg = `UV modéré (${Math.round(uv)}) — pense à ta crème si tu restes dehors longtemps 🧴`;
+  else if (uv <= 7) msg = `UV élevé (${Math.round(uv)}) — protection nécessaire avant de sortir ☀️`;
+  else if (uv <= 10) msg = `⚠️ UV très élevé (${Math.round(uv)}) — SPF 50 indispensable et évite 12h–15h`;
+  else msg = `🚨 UV extrême (${Math.round(uv)}) ! Limite l'exposition directe et protège-toi au maximum.`;
+
+  // Luma IA call if available
+  if (state.apiKey) {
+    lumaAIMessage(uv, msg);
+  } else {
+    document.getElementById('lumaHomeText').textContent = msg;
+  }
+}
+
+async function lumaAIMessage(uv, fallback) {
+  try {
+    const prompt = `Tu es Luma, une assistante bronzage bienveillante et experte en protection solaire. L'utilisateur a un phototype ${state.phototype||3}, objectif: ${state.objective}. UV actuel: ${uv}. Donne un message d'accueil court (2 phrases max), personnalisé, en français, sans être alarmiste. Reste chaleureuse et pratique.`;
+    const headers = { 'Content-Type': 'application/json' };
+    let url, body;
+
+    if (state.apiProvider === 'groq') {
+      url = 'https://api.groq.com/openai/v1/chat/completions';
+      headers['Authorization'] = `Bearer ${state.apiKey}`;
+      body = JSON.stringify({ model:'llama3-8b-8192', messages:[{role:'user',content:prompt}], max_tokens:100 });
+    } else if (state.apiProvider === 'gemini') {
+      url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${state.apiKey}`;
+      body = JSON.stringify({ contents:[{parts:[{text:prompt}]}] });
+    } else {
+      url = 'https://api.openai.com/v1/chat/completions';
+      headers['Authorization'] = `Bearer ${state.apiKey}`;
+      body = JSON.stringify({ model:'gpt-4o-mini', messages:[{role:'user',content:prompt}], max_tokens:100 });
+    }
+
+    const r = await fetch(url, { method:'POST', headers, body });
+    const data = await r.json();
+    let text = '';
+    if (state.apiProvider === 'gemini') text = data.candidates?.[0]?.content?.parts?.[0]?.text || fallback;
+    else text = data.choices?.[0]?.message?.content || fallback;
+    document.getElementById('lumaHomeText').textContent = text.trim();
+  } catch(e) {
+    document.getElementById('lumaHomeText').textContent = fallback;
+  }
+}
+
+function showLumaAlert(text) {
+  if (!state.notifEnabled) return;
+  const el = document.getElementById('lumaAlert');
+  document.getElementById('lumaAlertText').textContent = text;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+function showNotif(text) {
+  if (!state.notifEnabled) return;
+  const bar = document.getElementById('notifBar');
+  bar.textContent = text;
+  bar.classList.add('visible');
+  if ('vibrate' in navigator) navigator.vibrate([200,100,200]);
+}
+
+function dismissNotif() {
+  document.getElementById('notifBar').classList.remove('visible');
+}
+
+// ===== MODALS =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ===== LOGIN HINT =====
+(function() {
+  const storedHash = localStorage.getItem('solara_pwd');
+  if (!storedHash) {
+    document.getElementById('loginHint').textContent = '✨ Première connexion — crée ton mot de passe.';
+  }
+})();
+</script>
+</body>
+</html>
